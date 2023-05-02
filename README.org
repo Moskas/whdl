@@ -1,6 +1,5 @@
 #+title: Wallhaven.cc downloader
 #+author: Moskas
-#+optins toc:nil
 
 Simple wallhaven.cc wallpaper downloader written in Rust.
 
