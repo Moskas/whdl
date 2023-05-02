@@ -1,0 +1,11 @@
+#+title: Wallhaven.cc downloader
+#+author: Moskas
+#+optins toc:nil
+
+Simple wallhaven.cc wallpaper downloader written in Rust.
+
+* Roadmap
+- Stdin support
+- Support for all queries from Wallhaven API
+- Support for API keys
+- Customizable downloads folder
