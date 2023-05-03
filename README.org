@@ -4,7 +4,31 @@
 Simple wallhaven.cc wallpaper downloader written in Rust.
 
 * Roadmap
-- Stdin support
 - Support for all queries from Wallhaven API
-- Support for API keys
+- Support for multi page downloading and page choosing
 - Customizable downloads folder
+
+* Usage
+
+The app has built in help command
+
+#+BEGIN_QUOTE
+Wallhaven.cc wallpaper downloader
+
+Usage: wallhaven-dl [OPTIONS] --query <QUERY>
+
+  -r, --ratios <RATIOS>            Set the image ratios
+  -q, --query <QUERY>              The query to search on wallhaven.cc
+  -r, --ratios <RATIOS>            Set the image ratios
+  -i, --iresolution <IRESOLUTION>  Set the exact image resolution
+  -m, --mresolution <MRESOLUTION>  Set the minimal image resolution
+  -p, --purity <PURITY>            Set the purity sfw/sketchy/nsfw
+  -c, --category <CATEGORY>        Set the category general/anime/people
+  -h, --help                       Print help
+  -V, --version                    Print version
+  #+END_QUOTE
+
+Example usage:
+#+BEGIN_EXAMPLE
+whdl -q "Cyberpunk 2077" -p 100 -m 1920x1080 -c 110 -r landscape
+#+END_EXAMPLE
