@@ -1,8 +1,9 @@
 use clap::Parser;
 use rand;
 use reqwest;
-use serde_json::{Result, Value};
+use serde_json::Value;
 use std::{env, fmt::Debug};
+use subprocess::{self, Popen, PopenConfig};
 
 #[derive(Parser, Debug)]
 #[command(name = "whdl")]
@@ -36,8 +37,50 @@ struct Args {
     order: Option<String>,
 }
 
+//async fn download_wallpaper(url: String) -> reqwest<()> {
+//    println!("{url}");
+//    let tmp_dir = Builder::new().prefix("wallhaven-").tempdir().unwrap();
+//    let target = "https://www.rust-lang.org/logos/rust-logo-512x512.png";
+//    let response = reqwest::get(target).await?;
+//
+//    let mut dest = {
+//        let fname = response
+//            .url()
+//            .path_segments()
+//            .and_then(|segments| segments.last())
+//            .and_then(|name| if name.is_empty() { None } else { Some(name) })
+//            .unwrap_or("tmp.bin");
+//
+//        println!("file to download: '{}'", fname);
+//        let fname = tmp_dir.path().join(fname);
+//        println!("will be located under: '{:?}'", fname);
+//        File::create(fname).unwrap()
+//    };
+//    let content = response.text().await?;
+//    std::io::copy(&mut content.as_bytes(), &mut dest);
+//    Ok(())
+//}
+async fn download(url: String) -> subprocess::Result<()> {
+    let mut wget = Popen::create(
+        &["wget", &url],
+        PopenConfig {
+            stdout: subprocess::Redirection::Pipe,
+            ..Default::default()
+        },
+    )?;
+    let (out, err) = wget.communicate(None)?;
+    println!("{:?}, {:?}", out, err);
+    //if let Some(exit_status) = wget.poll() {
+    //    // the process has finished
+    //} else {
+    //    // it is still running, terminate it
+    //    wget.terminate()?;
+    //}
+    Ok(())
+}
+
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> reqwest::Result<()> {
     let api_key = match env::var("WALLHAVEN_API_KEY") {
         Ok(key) => key,
         Err(_e) => "".to_string(), // return empty string if no api key is set
@@ -81,15 +124,16 @@ async fn main() -> Result<()> {
         .await
         .unwrap();
 
-    let parsed_json: Value = serde_json::from_str(&body)?;
+    let parsed_json: Value = serde_json::from_str(&body).unwrap();
     //println!("{:#?}", parsed_json); // debug option to check if json is parsed correctly and check the response structure
 
     // get the array of data objects
     let data_array = parsed_json["data"].as_array().unwrap();
     // print out image url for each object in returned json
-    //for object in data_array {
-    //    println!("{}", object.to_owned()["path"]);
-    //}
+    for object in data_array {
+        println!("{}", object.to_owned()["path"]);
+        //download(object.to_owned()["path"].to_owned().to_string()).await;
+    }
     //println!("{api_key}");
     //println!("{args:?}");
     Ok(())

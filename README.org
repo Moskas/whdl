@@ -12,7 +12,7 @@ Simple wallhaven.cc wallpaper downloader written in Rust.
 
 The app has built in help command
 
-#+BEGIN_QUOTE
+#+BEGIN_EXAMPLE
 Wallhaven.cc wallpaper downloader
 
 Usage: wallhaven-dl [OPTIONS] --query <QUERY>
@@ -26,7 +26,7 @@ Usage: wallhaven-dl [OPTIONS] --query <QUERY>
   -c, --category <CATEGORY>        Set the category general/anime/people
   -h, --help                       Print help
   -V, --version                    Print version
-  #+END_QUOTE
+#+END_EXAMPLE
 
 Example usage:
 #+BEGIN_EXAMPLE
