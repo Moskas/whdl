@@ -19,7 +19,6 @@ Usage: wallhaven-dl [OPTIONS] --query <QUERY>
 
   -r, --ratios <RATIOS>            Set the image ratios
   -q, --query <QUERY>              The query to search on wallhaven.cc
-  -r, --ratios <RATIOS>            Set the image ratios
   -i, --iresolution <IRESOLUTION>  Set the exact image resolution
   -m, --mresolution <MRESOLUTION>  Set the minimal image resolution
   -p, --purity <PURITY>            Set the purity sfw/sketchy/nsfw
