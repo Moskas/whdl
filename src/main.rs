@@ -1,5 +1,5 @@
 use clap::Parser;
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use reqwest;
 use serde_json::Value;
 use std::{env, fmt::Debug, fs::File, io};
@@ -67,6 +67,9 @@ async fn main() -> reqwest::Result<()> {
     if args.purity != None {
         url.push_str(&(format!("&purity={}", args.purity.clone().unwrap())))
     }
+    if args.iresolution != None {
+        url.push_str(&(format!("&resolutions={}", args.iresolution.clone().unwrap())))
+    }
     if args.mresolution != None {
         url.push_str(&(format!("&atleast={}", args.mresolution.clone().unwrap())))
     }
@@ -103,7 +106,6 @@ async fn main() -> reqwest::Result<()> {
 
     // get the array of data objects
     let data_array = parsed_json["data"].as_array().unwrap();
-    // print out image url for each object in returned json
     for object in data_array {
         let url = object.to_owned()["path"].clone();
         let id = object.to_owned()["id"].clone();
