@@ -1,13 +1,12 @@
 use clap::Parser;
-use rand;
+use rand::{thread_rng, Rng};
 use reqwest;
 use serde_json::Value;
-use std::{env, fmt::Debug};
-use subprocess::{self, Popen, PopenConfig};
+use std::{env, fmt::Debug, fs::File, io};
 
 #[derive(Parser, Debug)]
 #[command(name = "whdl")]
-#[command(version = "1.0")]
+#[command(version = "1.1")]
 #[command(author = "Moskas minemoskas@gmail.com")]
 #[command(about="Wallhaven.cc wallpaper downloader",long_about=None)]
 struct Args {
@@ -37,52 +36,25 @@ struct Args {
     order: Option<String>,
 }
 
-//async fn download_wallpaper(url: String) -> reqwest<()> {
-//    println!("{url}");
-//    let tmp_dir = Builder::new().prefix("wallhaven-").tempdir().unwrap();
-//    let target = "https://www.rust-lang.org/logos/rust-logo-512x512.png";
-//    let response = reqwest::get(target).await?;
-//
-//    let mut dest = {
-//        let fname = response
-//            .url()
-//            .path_segments()
-//            .and_then(|segments| segments.last())
-//            .and_then(|name| if name.is_empty() { None } else { Some(name) })
-//            .unwrap_or("tmp.bin");
-//
-//        println!("file to download: '{}'", fname);
-//        let fname = tmp_dir.path().join(fname);
-//        println!("will be located under: '{:?}'", fname);
-//        File::create(fname).unwrap()
-//    };
-//    let content = response.text().await?;
-//    std::io::copy(&mut content.as_bytes(), &mut dest);
-//    Ok(())
-//}
-async fn download(url: String) -> subprocess::Result<()> {
-    let mut wget = Popen::create(
-        &["wget", &url],
-        PopenConfig {
-            stdout: subprocess::Redirection::Pipe,
-            ..Default::default()
-        },
-    )?;
-    let (out, err) = wget.communicate(None)?;
-    println!("{:?}, {:?}", out, err);
-    //if let Some(exit_status) = wget.poll() {
-    //    // the process has finished
-    //} else {
-    //    // it is still running, terminate it
-    //    wget.terminate()?;
-    //}
+async fn download(url: String, id: String, file_type: String) -> reqwest::Result<()> {
+    let resp = reqwest::get(url).await?;
+    //println!("{resp:?}");
+    if file_type == "image/png".to_string() {
+        let mut file = File::create(format!("{}.png", id)).expect("Failed to create the file");
+        let content = resp.bytes().await?;
+        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
+    } else {
+        let mut file = File::create(format!("{}.jpg", id)).expect("Failed to create the file");
+        let content = resp.bytes().await?;
+        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
+    }
     Ok(())
 }
 
 #[tokio::main]
 async fn main() -> reqwest::Result<()> {
     let api_key = match env::var("WALLHAVEN_API_KEY") {
-        Ok(key) => key,
+        Ok(key) => key.replace("\"", ""),
         Err(_e) => "".to_string(), // return empty string if no api key is set
     };
     let mut url: String = if api_key == "" {
@@ -108,7 +80,9 @@ async fn main() -> reqwest::Result<()> {
         url.push_str(&(format!("&purity={}", args.purity.clone().unwrap())))
     }
     if args.sorting != None {
-        let seed = rand::random::<u16>();
+        //let seed = rand::random::<u16>();
+        let mut rng = rand::thread_rng();
+        let seed: u32 = rng.gen_range(100_000..1_000_000);
         println!("{seed}");
         if args.sorting.clone().unwrap() == "random" {
             url.push_str(&(format!("&sort={}&seed={}", args.sorting.clone().unwrap(), seed)))
@@ -116,7 +90,7 @@ async fn main() -> reqwest::Result<()> {
             url.push_str(&(format!("&sort={}", args.sorting.clone().unwrap())))
         }
     }
-    println!("{}", url); // for debugging url
+    //println!("{}", url); // for debugging url
     let body = reqwest::get(url)
         .await
         .expect("Request failed")
@@ -131,10 +105,16 @@ async fn main() -> reqwest::Result<()> {
     let data_array = parsed_json["data"].as_array().unwrap();
     // print out image url for each object in returned json
     for object in data_array {
-        println!("{}", object.to_owned()["path"]);
-        //download(object.to_owned()["path"].to_owned().to_string()).await;
+        let url = object.to_owned()["path"].clone();
+        let id = object.to_owned()["id"].clone();
+        let file_type = object.to_owned()["file_type"].clone();
+        println!("Downloading: {url}");
+        download(
+            url.to_string().replace("\"", ""),
+            id.to_string().replace("\"", ""),
+            file_type.to_string().replace("\"", ""),
+        )
+        .await?;
     }
-    //println!("{api_key}");
-    //println!("{args:?}");
     Ok(())
 }
