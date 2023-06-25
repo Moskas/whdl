@@ -2,7 +2,9 @@ use clap::Parser;
 use rand::Rng;
 use reqwest;
 use serde_json::Value;
-use std::{env, fmt::Debug, fs::File, io};
+use std::{env, fmt::Debug};
+mod download;
+use download::download;
 
 #[derive(Parser, Debug)]
 #[command(name = "whdl")]
@@ -31,24 +33,15 @@ struct Args {
     #[arg(short, long)]
     ///Set the sorting of the results
     sorting: Option<String>,
+    #[arg(short,long)]
+    ///Set the AI art filter
+    ai_filter: Option<bool>,
     #[arg(short, long, default_value = "desc")]
     ///Set the sorting order
     order: Option<String>,
-}
-
-async fn download(url: String, id: String, file_type: String) -> reqwest::Result<()> {
-    let resp = reqwest::get(url).await?;
-    //println!("{resp:?}");
-    if file_type == "image/png".to_string() {
-        let mut file = File::create(format!("{}.png", id)).expect("Failed to create the file");
-        let content = resp.bytes().await?;
-        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
-    } else {
-        let mut file = File::create(format!("{}.jpg", id)).expect("Failed to create the file");
-        let content = resp.bytes().await?;
-        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
-    }
-    Ok(())
+    #[arg(short,long)]
+    ///Set the exact page to request and download
+    exact_page: Option<String>
 }
 
 #[tokio::main]
@@ -63,7 +56,7 @@ async fn main() -> reqwest::Result<()> {
         format!("https://wallhaven.cc/api/v1/search?apikey={api_key}")
     };
     let args = Args::parse();
-    url.push_str(&(format!("&q={}", args.query)));
+    url.push_str(&(format!("&q={}", args.query.replace("\"", ""))));
     if args.purity != None {
         url.push_str(&(format!("&purity={}", args.purity.clone().unwrap())))
     }
@@ -82,6 +75,14 @@ async fn main() -> reqwest::Result<()> {
     if args.purity != None {
         url.push_str(&(format!("&purity={}", args.purity.clone().unwrap())))
     }
+    if args.ai_filter != Some(true) {
+        url.push_str(&(format!("&ai_art_filter=0")))
+    } else {
+        url.push_str(&(format!("&ai_art_filter=1")))
+    }
+    if args.exact_page != None {
+        url.push_str(&(format!("&page={}", args.exact_page.clone().unwrap())))
+    }
     if args.sorting != None {
         //let seed = rand::random::<u16>();
         let mut rng = rand::thread_rng();
@@ -93,7 +94,7 @@ async fn main() -> reqwest::Result<()> {
             url.push_str(&(format!("&sort={}", args.sorting.clone().unwrap())))
         }
     }
-    //println!("{}", url); // for debugging url
+    //println!("{}", url); // for debugging queried url
     let body = reqwest::get(url)
         .await
         .expect("Request failed")

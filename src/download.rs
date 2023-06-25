@@ -1,28 +1,18 @@
 use reqwest;
+use std::io;
 use std::fs::File;
-use std::io::copy;
-use tempfile::Builder;
 
-#[tokio::main]
-pub async fn download(url: String) -> Result<(), reqwest::Error> {
-    let tmp_dir = Builder::new().prefix("example").tempdir().unwrap();
-    let target = url;
-    let response = reqwest::get(target).await?;
-
-    let mut dest = {
-        let fname = response
-            .url()
-            .path_segments()
-            .and_then(|segments| segments.last())
-            .and_then(|name| if name.is_empty() { None } else { Some(name) })
-            .unwrap_or("tmp.bin");
-
-        println!("file to download: '{}'", fname);
-        let fname = tmp_dir.path().join(fname);
-        println!("will be located under: '{:?}'", fname);
-        File::create(fname).unwrap()
-    };
-    let content = response.text().await?;
-    std::io::copy(&mut content.as_bytes(), &mut dest)?;
+pub async fn download(url: String, id: String, file_type: String) -> reqwest::Result<()> {
+    let resp = reqwest::get(url).await?;
+    //println!("{resp:?}");
+    if file_type == "image/png".to_string() {
+        let mut file = File::create(format!("{}.png", id)).expect("Failed to create the file");
+        let content = resp.bytes().await?;
+        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
+    } else {
+        let mut file = File::create(format!("{}.jpg", id)).expect("Failed to create the file");
+        let content = resp.bytes().await?;
+        io::copy(&mut content.as_ref(), &mut file).expect("Failed to write data to the file");
+    }
     Ok(())
 }
