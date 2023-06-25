@@ -10,19 +10,24 @@ Simple wallhaven.cc wallpaper downloader written in Rust.
 
 * Usage
 
-The app has built in help command
+The app has built-in help command:
 
 #+BEGIN_EXAMPLE
 Wallhaven.cc wallpaper downloader
 
-Usage: wallhaven-dl [OPTIONS] --query <QUERY>
+Usage: whdl [OPTIONS] --query <QUERY>
 
-  -r, --ratios <RATIOS>            Set the image ratios
+Options:
   -q, --query <QUERY>              The query to search on wallhaven.cc
+  -r, --ratios <RATIOS>            Set the image ratios
   -i, --iresolution <IRESOLUTION>  Set the exact image resolution
   -m, --mresolution <MRESOLUTION>  Set the minimal image resolution
   -p, --purity <PURITY>            Set the purity sfw/sketchy/nsfw
   -c, --category <CATEGORY>        Set the category general/anime/people
+  -s, --sorting <SORTING>          Set the sorting of the results
+  -a, --ai-filter <AI_FILTER>      Set the AI art filter [possible values: true, false]
+  -o, --order <ORDER>              Set the sorting order [default: desc]
+  -e, --exact-page <EXACT_PAGE>    Set the exact page to request and download
   -h, --help                       Print help
   -V, --version                    Print version
 #+END_EXAMPLE
@@ -31,3 +36,9 @@ Example usage:
 #+BEGIN_EXAMPLE
 whdl -q "Cyberpunk 2077" -p 100 -m 1920x1080 -c 110 -r landscape
 #+END_EXAMPLE
+
+** API Key
+Additionally, you can supply an API key for Wallhaven. The application checks an environment variable named:
+#+BEGIN_QUOTE
+WALLHAVEN_API_KEY
+#+END_QUOTE
