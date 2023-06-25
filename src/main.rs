@@ -2,7 +2,8 @@ use clap::Parser;
 use rand::Rng;
 use reqwest;
 use serde_json::Value;
-use std::{env, fmt::Debug};
+use std::{env, fmt::Debug, thread};
+
 mod download;
 use download::download;
 
@@ -33,15 +34,15 @@ struct Args {
     #[arg(short, long)]
     ///Set the sorting of the results
     sorting: Option<String>,
-    #[arg(short,long)]
+    #[arg(short, long)]
     ///Set the AI art filter
     ai_filter: Option<bool>,
     #[arg(short, long, default_value = "desc")]
     ///Set the sorting order
     order: Option<String>,
-    #[arg(short,long)]
+    #[arg(short, long)]
     ///Set the exact page to request and download
-    exact_page: Option<String>
+    exact_page: Option<String>,
 }
 
 #[tokio::main]
@@ -107,17 +108,25 @@ async fn main() -> reqwest::Result<()> {
 
     // get the array of data objects
     let data_array = parsed_json["data"].as_array().unwrap();
+
+    let mut handles = vec![];
     for object in data_array {
         let url = object.to_owned()["path"].clone();
         let id = object.to_owned()["id"].clone();
         let file_type = object.to_owned()["file_type"].clone();
-        println!("Downloading: {url}");
-        download(
-            url.to_string().replace("\"", ""),
-            id.to_string().replace("\"", ""),
-            file_type.to_string().replace("\"", ""),
-        )
-        .await?;
+        let handle = thread::spawn(move || {
+            println!("Downloading: {url}");
+            download(
+                url.to_string().replace("\"", ""),
+                id.to_string().replace("\"", ""),
+                file_type.to_string().replace("\"", ""),
+            )
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap().await?;
     }
     Ok(())
 }
