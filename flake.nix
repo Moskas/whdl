@@ -6,13 +6,20 @@
     naersk.url = "github:nix-community/naersk";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, flake-utils, naersk, nixpkgs }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      flake-utils,
+      naersk,
+      nixpkgs,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = (import nixpkgs) { inherit system; };
         naersk' = pkgs.callPackage naersk { };
-
-      in rec {
+      in
+      rec {
         defaultPackage = naersk'.buildPackage {
           src = ./.;
           nativeBuildInputs = with pkgs; [ pkg-config ];
@@ -27,6 +34,11 @@
             rustPackages.clippy
             rustfmt
           ];
+          nativeBuildInputs = with pkgs; [
+            openssl
+            pkg-config
+          ];
         };
-      });
+      }
+    );
 }
