@@ -4,7 +4,6 @@ use std::io;
 
 pub async fn download(url: String, id: String, file_type: String) -> reqwest::Result<()> {
     let resp = reqwest::get(url).await?;
-    //println!("{resp:?}");
     if file_type == "image/png".to_string() {
         let mut file =
             File::create(format!("wallhaven-{}.png", id)).expect("Failed to create the file");

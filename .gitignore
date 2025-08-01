@@ -4,3 +4,6 @@
 /whdl
 
 .direnv/
+
+*.jpg
+*.png

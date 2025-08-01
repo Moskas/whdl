@@ -4,8 +4,7 @@
 Simple wallhaven.cc wallpaper downloader written in Rust.
 
 * Roadmap
-- Support for all queries from Wallhaven API
-- Support for multi page downloading and page choosing
+- Support for multi page downloading
 - Customizable downloads folder
 
 * Usage
@@ -18,23 +17,23 @@ Wallhaven.cc wallpaper downloader
 Usage: whdl [OPTIONS] --query <QUERY>
 
 Options:
-  -q, --query <QUERY>              The query to search on wallhaven.cc
-  -r, --ratios <RATIOS>            Set the image ratios
-  -i, --iresolution <IRESOLUTION>  Set the exact image resolution
-  -m, --mresolution <MRESOLUTION>  Set the minimal image resolution
-  -p, --purity <PURITY>            Set the purity sfw/sketchy/nsfw
-  -c, --category <CATEGORY>        Set the category general/anime/people
-  -s, --sorting <SORTING>          Set the sorting of the results
-  -a, --ai-filter <AI_FILTER>      Set the AI art filter [possible values: true, false]
-  -o, --order <ORDER>              Set the sorting order [default: desc]
-  -e, --exact-page <EXACT_PAGE>    Set the exact page to request and download
-  -h, --help                       Print help
-  -V, --version                    Print version
+  -q, --query <QUERY>            Query to search for
+  -R, --ratios <RATIOS>          List of aspect ratios, can be a list comma separated
+  -r, --resolution <RESOLUTION>  Exact resolution(s), can be a list comma separated
+  -a, --atleast <ATLEAST>        Minimal resolution to search for
+  -p, --purity <PURITY>          100/110/111 (sfw/sketchy/nsfw) [default: 100]
+  -c, --category <CATEGORY>      Categories in xxx format 100/101/111 (general/anime/people) [default: 111]
+  -s, --sorting <SORTING>        Method of sorting results, possible values: date_added, relevance, random, views, favorites, toplist [default: date_added]
+  -o, --order <ORDER>            Order of sorting results, possible values: desc, asc [default: desc]
+  -C, --colors <COLORS>          Colors to search for
+  -P, --page <PAGE>              Download from specified page of results
+  -h, --help                     Print help (see more with '--help')
+  -V, --version                  Print version#+END_EXAMPLE
 #+END_EXAMPLE
 
 Example usage:
 #+BEGIN_EXAMPLE
-whdl -q "Cyberpunk 2077" -p 100 -m 1920x1080 -c 110 -r landscape
+whdl -q "Cyberpunk 2077" -p 100 -r 1920x1080 -c 110 -R landscape
 #+END_EXAMPLE
 
 ** API Key

@@ -9,31 +9,55 @@ use download::download;
 
 #[derive(Parser, Debug)]
 #[command(name = "whdl")]
-#[command(version = "1.1")]
+#[command(version = "1.2")]
 #[command(author = "Moskas minemoskas@gmail.com")]
-#[command(about = "Wallhaven.cc wallpaper downloader", long_about = None)]
+#[command(
+    about = "Wallhaven.cc wallpaper downloader",
+    long_about = "Wallhaven.cc wallpaper downloader. For exact values and query format checkout official api docs https://wallhaven.cc/help/api"
+)]
 struct Args {
+    /// Query to search for
     #[arg(short, long)]
     query: String,
-    #[arg(short, long)]
+    ///  List of aspect ratios, can be a list comma separated
+    #[arg(short = 'R', long)]
     ratios: Option<String>,
+    /// Exact resolution(s), can be a list comma separated
+    #[arg(short = 'r', long)]
+    resolution: Option<String>,
+    /// Minimal resolution to search for
     #[arg(short, long)]
-    iresolution: Option<String>,
-    #[arg(short, long)]
-    mresolution: Option<String>,
-    #[arg(short, long)]
+    atleast: Option<String>,
+    /// Purity filter in xxx format
+    #[arg(
+        short,
+        long,
+        default_value = "100",
+        help = "100/110/111 (sfw/sketchy/nsfw)"
+    )]
     purity: Option<String>,
-    #[arg(short, long)]
+    /// Categories in xxx format
+    /// 100/101/111 (general/anime/people)
+    #[arg(short, long, default_value = "111")]
     category: Option<String>,
-    #[arg(short, long)]
+    /// Method of sorting results, possible values:
+    /// date_added, relevance, random, views, favorites, toplist
+    #[arg(short, long, default_value = "date_added")]
     sorting: Option<String>,
-    #[arg(short, long)]
-    ai_filter: Option<bool>,
+    /// Order of sorting results, possible values: desc, asc
     #[arg(short, long, default_value = "desc")]
     order: Option<String>,
-    #[arg(short, long)]
-    exact_page: Option<String>,
-    amount: Option<i32>,
+    /// Colors to search for
+    #[arg(short = 'C', long)]
+    colors: Option<String>,
+    /// Download from specified page of results
+    #[arg(short = 'P', long)]
+    page: Option<String>,
+    // /// Download Specified amount of images
+    // amount: Option<i32>,
+    // /// Download directory
+    // #[arg(short, long)]
+    // directory: Option<String>,
 }
 
 async fn fetch_wallpapers(args: &Args) -> reqwest::Result<()> {
@@ -51,11 +75,11 @@ async fn fetch_wallpapers(args: &Args) -> reqwest::Result<()> {
     if let Some(purity) = &args.purity {
         url.push_str(&format!("&purity={}", purity));
     }
-    if let Some(iresolution) = &args.iresolution {
-        url.push_str(&format!("&resolutions={}", iresolution));
+    if let Some(resolution) = &args.resolution {
+        url.push_str(&format!("&resolutions={}", resolution));
     }
-    if let Some(mresolution) = &args.mresolution {
-        url.push_str(&format!("&atleast={}", mresolution));
+    if let Some(atleast) = &args.atleast {
+        url.push_str(&format!("&atleast={}", atleast));
     }
     if let Some(ratios) = &args.ratios {
         url.push_str(&format!("&ratios={}", ratios));
@@ -63,31 +87,25 @@ async fn fetch_wallpapers(args: &Args) -> reqwest::Result<()> {
     if let Some(category) = &args.category {
         url.push_str(&format!("&categories={}", category));
     }
-    if let Some(ai_filter) = args.ai_filter {
-        let ai_art_filter = if ai_filter { "0" } else { "1" };
-        url.push_str(&format!("&ai_art_filter={}", ai_art_filter));
-    }
-    if let Some(exact_page) = &args.exact_page {
-        url.push_str(&format!("&page={}", exact_page));
+    if let Some(page) = &args.page {
+        url.push_str(&format!("&page={}", page));
     }
     if let Some(sorting) = &args.sorting {
-        let mut url = format!("&sort={}", sorting);
         if sorting == "random" {
             let seed = rand::thread_rng().gen_range(100_000..1_000_000);
             url.push_str(&format!("&seed={}", seed));
         }
-        url.push_str(&format!("&sort={}", sorting));
+        url.push_str(&format!("&sorting={}", sorting));
+    }
+    if let Some(colors) = &args.colors {
+        url.push_str(&format!("&colors={}", colors));
     }
 
-    let body = reqwest::get(&url)
-        .await?
-        .text()
-        .await?;
+    let body = reqwest::get(&url).await?.text().await?;
 
     let parsed_json: Value = serde_json::from_str(&body).unwrap();
 
     let data_array = parsed_json["data"].as_array().unwrap();
-    println!("{}",&data_array.len());
     download_wallpapers(data_array).await.unwrap();
 
     Ok(())
