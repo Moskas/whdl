@@ -1,6 +1,4 @@
 use clap::Parser;
-use rand::Rng;
-use reqwest;
 use serde_json::Value;
 use std::{env, fmt::Debug, thread};
 
