@@ -92,7 +92,7 @@ async fn fetch_wallpapers(args: &Args) -> reqwest::Result<()> {
     }
     if let Some(sorting) = &args.sorting {
         if sorting == "random" {
-            let seed = rand::thread_rng().gen_range(100_000..1_000_000);
+            let seed = rand::random_range(100_000..1_000_000);
             url.push_str(&format!("&seed={}", seed));
         }
         url.push_str(&format!("&sorting={}", sorting));
