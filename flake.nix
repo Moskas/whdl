@@ -27,7 +27,8 @@
       rec {
         defaultPackage = naersk'.buildPackage {
           src = ./.;
-          nativeBuildInputs = with pkgs; [ pkg-config ];
+          nativeBuildInputs = with pkgs; [
+          ];
           buildInputs = with pkgs; [ openssl ];
         };
 
@@ -40,12 +41,14 @@
               "clippy"
               "rustfmt"
             ])
-            openssl
           ];
           nativeBuildInputs = with pkgs; [
-            openssl
+            (openssl.override { static = true; })
             pkg-config
           ];
+          shellHook = ''
+            export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath [ pkgs.sqlite ]}"
+          '';
         };
       }
     );
