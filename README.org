@@ -1,43 +1,77 @@
-#+title: Wallhaven.cc downloader
+#+title: whdl
 #+author: Moskas
 
-Simple wallhaven.cc wallpaper downloader written in Rust.
+Command-line wallpaper downloader for wallhaven.cc, written in Rust.
 
-* Roadmap
-- Support for multi page downloading
-- Customizable downloads folder
+[[./.github/whdl.gif]]
 
 * Usage
 
-The app has built-in help command:
-
 #+BEGIN_EXAMPLE
-Wallhaven.cc wallpaper downloader
-
 Usage: whdl [OPTIONS] --query <QUERY>
 
 Options:
   -q, --query <QUERY>            Query to search for
-  -R, --ratios <RATIOS>          List of aspect ratios, can be a list comma separated
-  -r, --resolution <RESOLUTION>  Exact resolution(s), can be a list comma separated
-  -a, --atleast <ATLEAST>        Minimal resolution to search for
+  -R, --ratios <RATIOS>          Aspect ratio filter, comma-separated (e.g. 16x9,16x10)
+  -r, --resolution <RESOLUTION>  Exact resolution filter, comma-separated (e.g. 1920x1080)
+  -a, --atleast <ATLEAST>        Minimum resolution (e.g. 1920x1080)
   -p, --purity <PURITY>          100/110/111 (sfw/sketchy/nsfw) [default: 100]
-  -c, --category <CATEGORY>      Categories in xxx format 100/101/111 (general/anime/people) [default: 111]
-  -s, --sorting <SORTING>        Method of sorting results, possible values: date_added, relevance, random, views, favorites, toplist [default: date_added]
-  -o, --order <ORDER>            Order of sorting results, possible values: desc, asc [default: desc]
-  -C, --colors <COLORS>          Colors to search for
-  -P, --page <PAGE>              Download from specified page of results
-  -h, --help                     Print help (see more with '--help')
-  -V, --version                  Print version#+END_EXAMPLE
+  -c, --category <CATEGORY>      100/010/001 or combined (general/anime/people) [default: 111]
+  -s, --sorting <SORTING>        date_added, relevance, random, views, favorites, toplist [default: date_added]
+  -o, --order <ORDER>            desc, asc [default: desc]
+  -C, --colors <COLORS>          Dominant color filter (hex without #, e.g. 660000)
+  -P, --page <PAGE>              Fetch a specific page of results (conflicts with --count)
+  -n, --count <COUNT>            Total wallpapers to download; fetches multiple pages as needed (conflicts with --page)
+  -d, --directory <DIRECTORY>    Output directory [default: current directory]
+  -j, --jobs <JOBS>              Maximum concurrent downloads [default: 4]
+      --dry-run                  Print what would be downloaded without saving any files
+  -h, --help                     Print help
+  -V, --version                  Print version
 #+END_EXAMPLE
 
-Example usage:
+** Examples
+
+Search and download from the first page:
 #+BEGIN_EXAMPLE
 whdl -q "Cyberpunk 2077" -p 100 -r 1920x1080 -c 110 -R landscape
 #+END_EXAMPLE
 
+Download 72 wallpapers (fetches 3 pages automatically):
+#+BEGIN_EXAMPLE
+whdl -q "nature" -n 72 -a 2560x1440 -d ~/wallpapers
+#+END_EXAMPLE
+
+Browse a specific page:
+#+BEGIN_EXAMPLE
+whdl -q "space" -P 3 -s views
+#+END_EXAMPLE
+
+Preview results without downloading:
+#+BEGIN_EXAMPLE
+whdl -q "abstract" --dry-run
+#+END_EXAMPLE
+
+** Pagination
+
+Wallhaven returns 24 results per page. =--page= fetches a single specific
+page. =--count= calculates how many pages are needed to satisfy the requested
+total, fetches them concurrently, and truncates to exactly the number asked
+for. The two flags conflict and cannot be used together.
+
 ** API Key
-Additionally, you can supply an API key for Wallhaven. The application checks an environment variable named:
-#+BEGIN_QUOTE
-WALLHAVEN_API_KEY
-#+END_QUOTE
+
+An API key is required to access NSFW content or your own account's
+collections. The application reads it from the environment:
+
+#+BEGIN_EXAMPLE
+export WALLHAVEN_API_KEY=your_key_here
+#+END_EXAMPLE
+
+Keys can be generated at https://wallhaven.cc/settings/account.
+Full API documentation is available at https://wallhaven.cc/help/api.
+
+** File naming
+
+Downloaded files are saved as =wallhaven-<id>.jpg= or =wallhaven-<id>.png=
+depending on the source format. Re-running the same query skips any files
+that already exist in the output directory.
