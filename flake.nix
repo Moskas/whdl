@@ -41,6 +41,7 @@
               "clippy"
               "rustfmt"
             ])
+            cargo-audit
           ];
           nativeBuildInputs = with pkgs; [
             (openssl.override { static = true; })
